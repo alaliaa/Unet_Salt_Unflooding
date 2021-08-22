@@ -29,3 +29,9 @@ Important notes
 
 `$SLURM_ARRAY_TASK_ID`  is used to define the starting point of `gen_data.py`
 
+# fwi.py 
+Important notes, 
+  1. In the function `get_coordinate` for the purpose of the implimintation, the origin of the shot and the receiver were set manually and need to be changed 
+  2. set `alphaTV=0` in case TV-regulization is not wanted. 
+  3. smoothing is set manually 
+
