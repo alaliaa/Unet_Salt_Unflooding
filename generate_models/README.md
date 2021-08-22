@@ -1,5 +1,8 @@
 To generate models we need to run the file `gen_data.py`, which takes two arguments 
+
 `arg1=istart` starting point, for example, if we have 1000 models already generated `istart=10001` 
+
+
 `arg2=num_model` number of models to generate 
 
 To run this in ibex please do the following step: 
