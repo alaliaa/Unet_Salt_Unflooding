@@ -1,4 +1,6 @@
-To generate models we need to run the file `gen_data.py`
+To generate models we need to run the file `gen_data.py`, which takes two arguments 
+`arg1=istart` starting point, for example, if we have 1000 models already generated `istart=10001` 
+`arg2=num_model` number of models to generate 
 
 To run this in ibex please do the following step: 
   1. **Log in to a GPU login node**
@@ -17,7 +19,9 @@ To run this in ibex please do the following step:
 
 
 # slurm job 
-Important parameters 
+Important notes 
 
 `#SBATCH --array=start-end ` this define the number of jobs that will be implimented. Each job will be given an ID stored in `$SLURM_JOB_ID` and a task id stored in `$SLURM_ARRAY_TASK_ID`
+
+`$SLURM_ARRAY_TASK_ID`  is used to define the starting point of `gen_data.py`
 
