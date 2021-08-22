@@ -1,7 +1,7 @@
 To generate models we need to run the file ''gen_data.py"
 
 To run this in ibex please do the following step: 
-    1. **Log in to a GPU login node**
+  1. **Log in to a GPU login node**
      
   `$ ssh -X <USERNAME>@glogin.ibex.kaust.edu.sa`
     
@@ -12,4 +12,5 @@ To run this in ibex please do the following step:
   ```
 
   3. **Navigate to '' generate_models folder and run**
-  `sbatch run.sh` 
+  
+  `$ sbatch run.sh` 
