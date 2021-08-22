@@ -14,3 +14,6 @@ To run this in ibex please do the following step:
   3. **Navigate to  `generate_models` folder and run**
   
   `$ sbatch run.sh` 
+
+
+# slurm job 
