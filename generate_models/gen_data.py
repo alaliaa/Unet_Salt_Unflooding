@@ -13,21 +13,32 @@ from model_generator import  create_random_model, create_random_model2
 from skimage.transform import resize
 import m8r as sf
 import sys 
+import os
 
-# Function for bandpass filtering 
+# ========================== Functions  ============================== #
 def butter_bandpass(lowcut, highcut, fs,btype ,order=7):
     nyq = 0.5 * fs
     if lowcut != None: low = lowcut / nyq
     if highcut != None: high = highcut / nyq
 
     if btype == 'band': b, a = signal.butter(order, [low, high], btype=btype, analog=False)
-    if btype == 'low':  b, a = signal.butter(order, low, btype=btype, analog=False)
-    if btype == 'high': b, a = signal.butter(order,high, btype=btype, analog=False)
+    if btype == 'low':  b, a = signal.butter(order, high, btype=btype, analog=False)
+    if btype == 'high': b, a = signal.butter(order,low, btype=btype, analog=False)
     
     return b, a        
 
 
 def butter_bandpass_filter(data,lowcut=None,highcut=None,fs=None,btype='band',order=5):
+    '''
+    This functions create a butterworth filter and apply the bandpass/high_cut/low_cut filters to the data  
+    arguments:
+            data   :     1D array that will be filtered 
+            lowcut :   The lower band of frequency  [None for law_pass_filter] 
+            highcut:  The high band of frequency  [None for high_pass filter]
+            btype  :  filtertype ['band','low','high']
+            order  :  order of the butterworth filter 
+    for more details - check the scipy documentation 
+    '''
     b, a = butter_bandpass(lowcut, highcut, fs,btype, order=order)
     y = signal.filtfilt(b, a, data)
     return y 
@@ -52,12 +63,10 @@ def load_2drsf_data(filename):
             }
     return data.T,parm
 
-# %% 
-# setting parameters
 
-mpl.rcParams['image.cmap'] ='seismic'
-
-freq=8
+# ============================ setting global parameters =============================#
+freq=8  # Ricker dominant freq for the source
+minimum_freq= 7 # minimum frequency for the data 
 nx = 600
 nz = 200
 dx = 0.02
@@ -72,27 +81,28 @@ num_sources_per_shot=1
 num_batches = 1 
 mxoffset = 5
 num_receiver_per_shot= int((mxoffset/dx)//2)
-alphatv=0.001
+alphatv=0.001  # this is for TV regularization 
 
 source_spacing = (nx*dx - 2*mxoffset -1)/num_shots
-receivers_depth = .02
-source_depth = .02
-os=0
+receivers_depth = dx
+source_depth = dx
+osou=0 
 orec=0
 receiver_spacing= dx*2
 FWI_itr= 200
 istart=int(sys.argv[1]) * int(sys.argv[2]) 
 num_models=int (sys.argv[2])
 
-
 device = torch.device('cuda:0')
 path = './output_ibx5/'
-# path = './output/test/'
+
+if not os.path.exists(path):
+    os.makedirs(path) 
 
 
 
 
-# get 1D models 
+# ===================================== create random models ========================================= #
 bp, par = load_2drsf_data('./model_scale_1.rsf')
 bp = bp.T
 bp = resize(bp,(bp.shape[0],nz))
@@ -126,16 +136,16 @@ true_m = torch.tensor(models2D,dtype=torch.float32)
 init_m = torch.tensor(initials2D,dtype=torch.float32) 
 
 # %%
-# inversion blocj 
+# ====================================== Inversion ======================================= #
 start = time.time()
 inversion = fwi.fwi(nx,nz,dx,nt,dt,
-		num_dim,num_shots,num_sources_per_shot,source_spacing,os,num_receiver_per_shot,receiver_spacing,
+		num_dim,num_shots,num_sources_per_shot,source_spacing,osou,num_receiver_per_shot,receiver_spacing,
         orec,source_depth,receivers_depth,num_batches,2)
 wavel = inversion.Ricker(freq)  #source will be repeated as many shots
 
 # filter frequency
 wavel_f = torch.from_numpy(butter_bandpass_filter(
-			wavel.view(wavel.shape[0]).numpy(),lowcut=None,highcut=7,fs=fs,btype='high').copy()).view(wavel.shape[0],1,1)
+			wavel.view(wavel.shape[0]).numpy(),lowcut=minimum_freq,highcut=None,fs=fs,btype='high').copy()).view(wavel.shape[0],1,1)
     
 
 # forward modelling

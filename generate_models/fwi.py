@@ -99,15 +99,11 @@ class fwi():
        model.requires_grad=True 
        m_max = model.max()
        m_min = model.min()
-      #  mTV = model.detach().clone()
-      #  mTV.requires_grad=True
        data_t_max,_ = data_t.max(dim=0,keepdim=True)
       #  data_t_norm = data_t / (data_t_max.abs() + 1e-10)
  
        criterion = torch.nn.MSELoss()
        LR = 0.01
-      #  alphatv = alphatv
-    #    alphatv = 1e-14
 
        optimizer = torch.optim.Adam([{'params':[model],'lr':LR}])
 
@@ -130,10 +126,10 @@ class fwi():
            running_loss1 =0 
            running_loss2 = 0
            optimizer.zero_grad()
-
+	   # To compute TV I am cloning and detaching the model so we can apply weights(alphaTV) on it later 
            mTV = model.detach().clone()
            mTV.requires_grad=True
-           optTV = torch.optim.Adam([{'params':[mTV],'lr':LR}])
+           optTV = torch.optim.Adam([{'params':[mTV],'lr':LR}]) # maybe Adam not the best choice here !! 
 
            for it in range(num_batches): # loop over shots 
 
@@ -144,13 +140,13 @@ class fwi():
                batch_data_pred = prop(batch_wavl, batch_x_s, batch_x_r, self.dt)
 
                loss1 = criterion(batch_data_pred, batch_data_t)
-               if loss1.item() == 0.0: 
+               if loss1.item() == 0.0: # in case the initial and the true are the same (when we do not have salts)
                   updates.append(model.detach().cpu().numpy())
                   return np.array(updates)
                loss2 = tv_loss(mTV)
                # loss.backward()
-               loss1.backward()
-               loss2.backward()
+               loss1.backward() # update L2 loss
+               loss2.backward() # update TV loss
                # running_loss += loss.item()# + loss2.item()  
                running_loss += loss1.item() 
                # running_loss2 += loss2.item()
@@ -161,12 +157,12 @@ class fwi():
                # aspect='auto', vmin=vmin, vmax=vmax,cmap='gray')
                                
              
-
-         #   if itr==50: alphatv=5e-14
+	   # smooth and normalize the gradient
            model.grad = self.grad_smooth(model,2,0.5).to(device)  
            model.grad =  self.grad_reg(model,mask=msk)
 
-           mTV.grad = self.grad_reg(mTV,msk)     
+           mTV.grad = self.grad_reg(mTV,msk)
+           # combine the two gradient     
            model.grad = model.grad + alphatv * mTV.grad
            model.grad =  self.grad_reg(model,mask=msk)
 
