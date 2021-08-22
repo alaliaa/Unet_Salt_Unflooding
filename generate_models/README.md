@@ -5,7 +5,8 @@ To generate models we need to run the file `gen_data.py`, which takes two argume
 
 `arg2=num_model` number of models to generate 
 
-To run this in ibex please do the following step: 
+# Run in Ibex
+
   1. **Log in to a GPU login node**
      
   `$ ssh -X <USERNAME>@glogin.ibex.kaust.edu.sa`
