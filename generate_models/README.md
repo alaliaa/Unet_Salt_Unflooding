@@ -35,3 +35,6 @@ Important notes,
   2. set `alphaTV=0` in case TV-regulization is not wanted. 
   3. smoothing is set manually 
 
+# model_generator 
+This is the main engine to generate the random models. In the current implimintation I am usin the mean valuse of BP model to generate the random models.
+
