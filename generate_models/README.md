@@ -17,3 +17,7 @@ To run this in ibex please do the following step:
 
 
 # slurm job 
+Important parameters 
+
+`#SBATCH --array=start-end ` this define the number of jobs that will be implimented. Each job will be given an ID stored in `$SLURM_JOB_ID` and a task id stored in `$SLURM_ARRAY_TASK_ID`
+
