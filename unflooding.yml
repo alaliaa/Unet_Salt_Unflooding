@@ -1,0 +1,15 @@
+name: salt_unflooding
+channels:
+  - defaults
+dependencies:
+  - python>=3.6.4
+  - pip
+  - numpy
+  - matplotlib
+  - scikit-learn
+  - ipython
+  - jupyter
+  - pytorch 
+  - scikit-image
+  - pip:
+    - deepwave
