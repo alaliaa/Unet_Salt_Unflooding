@@ -1,0 +1,156 @@
+Input from a tty
+
+Segy2sep:   shan@sep101   Mon Oct 10 19:31:17 2005
+		sets next: in="/scr1/shan/junk1.H@"
+		junkME=0
+		hff="-1"
+		same_record_number=1
+	 	n2=1 o2=1 d2=1 label2="trace number" 
+
+n3=1 n4=1 n5=1 n6=1 n7=1 n8=1 n9=1 
+
+	n1=1911  o1=0.000000  d1=0.024080   label1="none"   unit1="none"
+		gff="-1"
+		esize=4
+		data_format="xdr_float"
+		junkME=0
+		same_record_number=1
+	 	n2=5395 o2=1 d2=1 label2="trace number" 
+
+n3=1 n4=1 n5=1 n6=1 n7=1 n8=1 n9=1 
+
+	n1=1911  o1=0.000000  d1=0.024080   label1="none"   unit1="none"
+		gff="-1"
+		esize=4
+d1=6.25 
+d2=12.5
+sets next: in="/scr1/shan/vel.bp.H@"
+o2=0
+in=vel.bp.H@
+
+
+Cp:   bob@koko.stanford.edu   Fri Mar 17 14:22:56 2006
+		sepstr_ready_out() : sets next in="stdin"
+		copy_intag="vel.bp.H"
+		data_format="xdr_float"
+
+2.0	sfdd	data/bpait/model:	kalim0a@kw12159	Mon Aug  7 08:24:28 2017
+
+	data_format="native_float"
+	esize=4
+	in="stdout"
+	in="stdin"
+
+2.0	sfput	data/bpait/model:	kalim0a@kw12159	Mon Aug  7 08:24:28 2017
+
+	in="/home/kalim0a/Madagascar/RSFTMP-2.0/data/bpait/model/bpaitvel.rsf@"
+	label1=Depth Z
+	data_format="native_float"
+	unit1=m
+	label2=Distance X
+	unit2=m
+2.0	sfput	data/bpait/model:	kalim0a@kw12159.kaust.edu.sa	Wed Aug 30 14:53:22 2017
+
+	d2=0.00625
+	data_format="native_float"
+	in="stdout"
+	d1=0.003125
+	in="stdin"
+
+2.0	sfmath	data/bpait/model:	kalim0a@kw12159.kaust.edu.sa	Wed Aug 30 14:53:22 2017
+
+	x2=2
+	input=0
+	data_format="native_float"
+	esize=4
+	in="./hi.rsf@"
+	x1=1
+2.0	sfwindow	data/bpait/model:	kalim0a@kw12159.kaust.edu.sa	Sun Oct 29 19:18:32 2017
+
+	d2=0.00625
+	n2=2561
+	o1=0
+	o2=0
+	label1="Depth"
+	data_format="native_float"
+	label2="Distance"
+	esize=4
+	in="stdout"
+	max2=16
+	unit1="m"
+	unit2="m"
+	d1=0.003125
+	n1=1911
+	in="stdin"
+
+2.0	sfremap1	data/bpait/model:	kalim0a@kw12159.kaust.edu.sa	Sun Oct 29 19:18:32 2017
+
+	o1=0
+	data_format="native_float"
+	esize=4
+	in="stdout"
+	d1=0.02
+	n1=290
+	in="stdin"
+
+2.0	sftransp	data/bpait/model:	kalim0a@kw12159.kaust.edu.sa	Sun Oct 29 19:18:32 2017
+
+	o1=0
+	d2=0.02
+	n2=290
+	label1="Distance"
+	o2=0
+	data_format="native_float"
+	label2="Depth"
+	esize=4
+	in="stdout"
+	unit1="m"
+	unit2="m"
+	d1=0.00625
+	n1=2561
+	in="stdin"
+
+2.0	sfremap1	data/bpait/model:	kalim0a@kw12159.kaust.edu.sa	Sun Oct 29 19:18:32 2017
+
+	o1=0
+	data_format="native_float"
+	esize=4
+	in="stdout"
+	d1=0.02
+	n1=801
+	in="stdin"
+
+2.0	sftransp	data/bpait/model:	kalim0a@kw12159.kaust.edu.sa	Sun Oct 29 19:18:32 2017
+
+	o1=0
+	d2=0.02
+	n2=801
+	label1="Depth"
+	o2=0
+	data_format="native_float"
+	label2="Distance"
+	esize=4
+	in="stdout"
+	unit1="m"
+	unit2="m"
+	d1=0.02
+	n1=290
+	in="stdin"
+
+2.0	sfwindow	data/bpait/model:	kalim0a@kw12159.kaust.edu.sa	Sun Oct 29 19:18:32 2017
+
+	d2=0.02
+	n2=801
+	o1=0
+	o2=0
+	label1="Depth"
+	data_format="native_float"
+	label2="Distance"
+	esize=4
+	max1=4.5
+	in="/scratch/kalim0a/KALITA/Salt/BP2/data/model_scale_1.rsf@"
+	unit1="m"
+	unit2="m"
+	d1=0.02
+	n1=226
+	in="./model_scale_1.rsf@"
