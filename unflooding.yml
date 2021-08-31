@@ -9,7 +9,7 @@ dependencies:
   - scikit-learn
   - ipython
   - jupyter
-  - pytorch 
+  - pytorch-gpu
   - scikit-image
   - pip:
     - deepwave
