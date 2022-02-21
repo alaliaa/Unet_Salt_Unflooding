@@ -30,10 +30,17 @@ class fwi():
 
 
     def get_coordinate(self,mode):
-       ''' Create arrays containing the source and receiver locations
+       """ 
+        Create arrays containing the source and receiver locations
         x_s: Source locations [num_shots, num_sources_per_shot, num_dimensions]
         x_r: Receiver locations [num_shots, num_receivers_per_shot, num_dimensions]
-        Note: the depth is set to zero , to change it change the first element in the last dimensino '''
+       ==========================
+       Arguments: 
+         mode: 1 or 2
+            Control the aquisition type, fix-spread or all the grid points. 
+
+         warning: this is hard coded, safier option is to go with mode 1, or manually feed the coordinate
+        """
        if self.num_shots ==1 and self.num_sources_per_shot==1 : # This will make the shot at the center !!
              x_s = torch.zeros(self.num_shots, self.num_sources_per_shot, self.num_dims)
              x_s[:, 0, 1] = self.nx//2 * self.dx
@@ -92,25 +99,45 @@ class fwi():
 
 
     def run_inversion(self,model,data_t,wavelet,msk,niter,alphatv,device): 
-       ''' This run the full inverstion, check that all variable should be in gpu '''
+       """ 
+      This run the FWI inversion,  
+      ===================================
+      Arguments: 
+         model: torch.Tensor [nz.nx]: 
+            Initial model for FWI 
+         data_t: torch.Tensor [nt,ns,nr]: 
+            Observed data
+         wavelet: torch.Tensor [nt,1,1] or [nt,ns,1]
+            wavelet 
+         msk: torch.Tensor [nz,nx]:
+            Mask for water layer
+         niter: int: 
+            Number of iteration 
+         alphatv: float
+            TV Coefficient
+         device: gpu or cpu  
+       ==================================
+      Optional: 
+         vmin: int:
+            upper bound for the update 
+         vmax: int: 
+            lower bound for the update 
+       """
+
        model = model.to(device)
        wavelet = wavelet.to(device)
        msk = torch.from_numpy(msk).int().to(device)
        model.requires_grad=True 
-       m_max = model.max()
-       m_min = model.min()
-       data_t_max,_ = data_t.max(dim=0,keepdim=True)
-      #  data_t_norm = data_t / (data_t_max.abs() + 1e-10)
- 
+       m_max = kwargs.pop('vmax', 4.5)
+       m_min = kwargs.pop('vmin', 1.5)
        criterion = torch.nn.MSELoss()
-       LR = 0.01
-
+       LR = 0.01 # update by 10 m/s
        optimizer = torch.optim.Adam([{'params':[model],'lr':LR}])
 
        num_batches = self.num_batches
        num_shots_per_batch = int(self.num_shots / num_batches)
        prop = deepwave.scalar.Propagator({'vp': model}, self.dx,pml_width=[0,20,20,20,20,20])
-#                                           survey_pad=[None, None, 0, 0])
+                                           
        t_start = time.time()
        loss_iter=[]
        increase = 0
@@ -144,58 +171,27 @@ class fwi():
                   updates.append(model.detach().cpu().numpy())
                   return np.array(updates)
                loss2 = tv_loss(mTV)
-               # loss.backward()
                loss1.backward() # update L2 loss
                loss2.backward() # update TV loss
-               # running_loss += loss.item()# + loss2.item()  
                running_loss += loss1.item() 
-               # running_loss2 += loss2.item()
 
-               # vmin, vmax = np.percentile(batch_data_t[:,2].cpu().numpy(), [2,98])
-               # plt.figure()
-               # plt.imshow(batch_data_t[:,2].cpu().numpy()-batch_data_pred[:,2].detach().cpu().numpy(), 
-               # aspect='auto', vmin=vmin, vmax=vmax,cmap='gray')
-                               
-             
-	   # smooth and normalize the gradient
-           model.grad = self.grad_smooth(model,2,0.5).to(device)  
-           model.grad =  self.grad_reg(model,mask=msk)
-
+	        # smooth and normalize the gradient
+           model.grad = self.grad_sum_spread(model).to(device)
+           model.grad = torch.tensor(gaussian_filter1d(model.grad.cpu(),sigma=2,axis=0),device=device)
+           model.grad = self.grad_reg(model,msk)
+           
+           # normalize the TV grad to have same magnitude as model.grad
            mTV.grad = self.grad_reg(mTV,msk)
            # combine the two gradient     
            model.grad = model.grad + alphatv * mTV.grad
            model.grad =  self.grad_reg(model,mask=msk)
 
-
-         #   if itr%5 ==0 :
-         #    plt.figure(figsize=(10,5))
-         #    plt.imshow(model.detach().cpu().numpy(),cmap='seismic')
-         #    plt.colorbar()
-         #    plt.show()     
-         #    plt.figure(figsize=(10,5))
-         #    plt.imshow(model.grad.cpu().numpy(),cmap='seismic')
-         #    plt.colorbar()
-         #    plt.show()            
-         #    plt.figure(figsize=(10,5))
-         #    plt.imshow(mTV.grad.cpu().numpy(),cmap='seismic')
-         #    plt.colorbar()
-         #    plt.show()
-   
            optimizer.step()   
            model.data[model.data < m_min] = m_min
            model.data[model.data > m_max] = m_max
            loss_iter.append(running_loss)	
            print('Iteration: ', itr, 'Objective: ', running_loss)
-         #   print('Running loss1: ',running_loss1,'running loss2: ',running_loss2)
-           # see the gradient
-         #   if itr%5 ==0 :
-         #    plt.figure(figsize=(10,3))
-         #    plt.imshow(model.clone().detach().cpu().numpy(),cmap='jet')
-         #    plt.show()
-         #    plt.figure(figsize=(10,3))
-            # plt.imshow(model.grad.cpu().numpy(),cmap='seismic')
-            # plt.colorbar()
-            # plt.show()
+
 
 
 
@@ -232,14 +228,11 @@ class fwi():
 
 
 
-    def grad_smooth(self,model,sigmax,sigmaz):
+    def grad_sum_spread(self,model):
                m =  model.detach().clone().cpu()
                gradient = model.grad.cpu()               
                gradient = gradient.sum(dim=1).view(gradient.shape[0],1).expand(-1,gradient.shape[1])
                gradient = gradient.numpy()
-               # gradient = gaussian_filter1d(gradient,sigma=sigmaz,axis=0) # z
-               gradient *= m.numpy()**3
-               # gradient = gaussian_filter1d(gradient,sigma=sigmax,axis=1) # x 
                gradient = torch.tensor(gradient)
                return gradient
 

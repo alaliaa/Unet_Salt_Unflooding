@@ -11,57 +11,40 @@ import torch
 import time 
 from model_generator import  create_random_model, create_random_model2
 from skimage.transform import resize
-import m8r as sf
 import sys 
 import os
 
+
+
 # ========================== Functions  ============================== #
-def butter_bandpass(lowcut, highcut, fs,btype ,order=7):
-    nyq = 0.5 * fs
-    if lowcut != None: low = lowcut / nyq
-    if highcut != None: high = highcut / nyq
+def freq_filter(freq, wavelet,btype,fs):
+    """
+    Filter out low frequency
 
-    if btype == 'band': b, a = signal.butter(order, [low, high], btype=btype, analog=False)
-    if btype == 'low':  b, a = signal.butter(order, high, btype=btype, analog=False)
-    if btype == 'high': b, a = signal.butter(order,low, btype=btype, analog=False)
-    
-    return b, a        
+    Parameters
+    ----------
+    freq : :obj:`int` or `array in case of bandpass `
+    Cut-off frequency
+    wavelet : :obj:`torch.Tensor`
+    Tensor of wavelet
+    btype : obj: 'str'
+    Filter type  
+    dt : :obj:`float32`
+    Time sampling
+    Returns
+    -------
+    : :obj:`torch.Tensor`
+    Tensor of highpass frequency wavelet
+    """
+
+    if btype == 'hp': sos = signal.butter(4,  2 * freq /fs, 'hp', output='sos') 
+    if btype == 'lp': sos = signal.butter(4,   2 * freq /fs , 'lp', output='sos') 
+    if btype == 'bp': sos = signal.butter(4,  [2 * freq[0] /fs,  2 * freq[1] /fs ], 
+                            'bp', output='sos') 
+    return torch.tensor( signal.sosfiltfilt(sos, wavelet,axis=0).copy(),dtype=torch.float32)
 
 
-def butter_bandpass_filter(data,lowcut=None,highcut=None,fs=None,btype='band',order=5):
-    '''
-    This functions create a butterworth filter and apply the bandpass/high_cut/low_cut filters to the data  
-    arguments:
-            data   :     1D array that will be filtered 
-            lowcut :   The lower band of frequency  [None for law_pass_filter] 
-            highcut:  The high band of frequency  [None for high_pass filter]
-            btype  :  filtertype ['band','low','high']
-            order  :  order of the butterworth filter 
-    for more details - check the scipy documentation 
-    '''
-    b, a = butter_bandpass(lowcut, highcut, fs,btype, order=order)
-    y = signal.filtfilt(b, a, data)
-    return y 
 
-
-def load_2drsf_data(filename):
-    f  = sf.Input(filename)
-    nz = f.int("n1")
-    nx = f.int("n2")
-    dz = f.float("d1")
-    dx = f.float("d2")
-    oz = f.float("o1")
-    ox = f.float("o2")
-
-    # note in reading rsf to numpy the diload_rsf_datamension are reverse 
-    data = np.zeros((nx,nz),dtype=np.float32)
-    f.read(data)
-    print('Shape of loaded data: {}'.format(np.shape(data)))
-    parm = {'nz':nz, 'nx':nx, 
-            'dz':dz, 'dx':dx, 
-            'oz':oz, 'ox':ox
-            }
-    return data.T,parm
 
 
 # ============================ setting global parameters =============================#
@@ -76,13 +59,11 @@ nt = int( 5 / dt)
 num_dim=2 
 num_shots = 2
 num_sources_per_shot=1
-# source_spacing= (nx*dx)/num_shots
-# source_spacing=6.8
+
 num_batches = 1 
 mxoffset = 5
 num_receiver_per_shot= int((mxoffset/dx)//2)
-alphatv=0.001  # this is for TV regularization 
-
+alphatv=0.001  #  TV regularization coefficient 
 source_spacing = (nx*dx - 2*mxoffset -1)/num_shots
 receivers_depth = dx
 source_depth = dx
@@ -94,7 +75,7 @@ istart=int(sys.argv[1]) * int(sys.argv[2])
 num_models=int (sys.argv[2])
 
 device = torch.device('cuda:0')
-path = './output_ibx5/'
+path = './output/'
 
 if not os.path.exists(path):
     os.makedirs(path) 
@@ -103,20 +84,22 @@ if not os.path.exists(path):
 
 
 # ===================================== create random models ========================================= #
-bp, par = load_2drsf_data('./model_scale_1.rsf')
+
+# reading the background velocity 
+bp = np.load('bp_left.npy')
 bp = bp.T
 bp = resize(bp,(bp.shape[0],nz))
-
 bp[ bp >= 4.4] = np.nan
 # Compute mean and std
 bp_mean = np.nanmean(bp,axis=0)
+bp_std = np.mean(np.nanstd(bp,axis=0))
 
 models1D = np.zeros((num_models,nz))
 initials1D = np.zeros((num_models,nz))
 wb = np.zeros((num_models,1))
 for i in range(num_models):
-	layer = int(np.random.rand()*nz)  # 80 is max numpur of layer
-	models1D[i,:], initials1D[i,:],wb[i,:] = create_random_model2(layer,nz,bp_mean)
+	layer = int(np.random.rand()*nz)  
+	models1D[i,:], initials1D[i,:],wb[i,:] = create_random_model2(layer,nz,bp_mean,std=bp_std)
 
 
 
@@ -143,13 +126,10 @@ inversion = fwi.fwi(nx,nz,dx,nt,dt,
         orec,source_depth,receivers_depth,num_batches,2)
 wavel = inversion.Ricker(freq)  #source will be repeated as many shots
 
-# filter frequency
-wavel_f = torch.from_numpy(butter_bandpass_filter(
-			wavel.view(wavel.shape[0]).numpy(),lowcut=minimum_freq,highcut=None,fs=fs,btype='high').copy()).view(wavel.shape[0],1,1)
-    
+# high-pass filter for removing low frequencies
+wavel_f = freq_filter(freq=minimum_freq,wavelet=wavel,btype='hp',fs=fs)
 
 # forward modelling
-
 data = torch.zeros((nt,num_shots,num_receiver_per_shot),dtype=torch.float32)
 inverted_models = torch.zeros((nz,nx),dtype=torch.float32)
 count=1
@@ -158,13 +138,6 @@ for i in  range(num_models):
      print("MODEL NUMBER: ", i)
 
      data  = inversion.forward_modelling(true_m[i,:],wavel_f.repeat(1,num_shots,num_sources_per_shot),device) 
-
-    #  plt.figure()
-    #  vmin, vmax = np.percentile(data[:,0,:].numpy(), [2,98])
-    #  plt.imshow(data[:,0,:].cpu().numpy(), aspect='auto',vmin=vmin, vmax=vmax)
-    #  plt.show()
-
-
 
      inverted_models  = inversion.run_inversion (init_m[i,:],
                         data,wavel_f,wb[i,:],FWI_itr,alphatv,device) # output is numpy arr
@@ -180,16 +153,3 @@ print (f"Number of generated file is {count-1}")
 
 print(' ---------- Done yaaaay')
 
-# plot one shot gather
-
-
-# inverted_models = inverted_models.numpy()
-
-#for i in range (num_models):
-#     plt.figure()
-#     plt.plot(true_m[i,:,5].numpy(),label='true')     
-#     plt.plot(init_m[i,:,5].numpy(),label='initial')
-#     plt.plot(inverted_models[i,:,5],label='inv')a
-#     plt.legend()
-#     plt.show()
-# %.
