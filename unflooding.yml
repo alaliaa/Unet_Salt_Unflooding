@@ -18,4 +18,4 @@ dependencies:
   - pytorch>=1.7.1=py3.8_cuda10.2.89_cudnn7.6.5_0
   - torchvision
   - pip:
-    - deepwave==0.0.7
+    - deepwave

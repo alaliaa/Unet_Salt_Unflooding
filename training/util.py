@@ -1,4 +1,3 @@
-import copy
 import random
 import sys
 import matplotlib as mlp
@@ -7,10 +6,10 @@ import numpy as np
 import torch
 from scipy.ndimage.filters import gaussian_filter1d
 from skimage.transform import resize
-from torch.utils.data import DataLoader
-import  m8r as sf
 import os 
-import subprocess
+
+
+
 
 def Plot_model(m,par,name=None):
     font = {
@@ -29,24 +28,7 @@ def Plot_model(m,par,name=None):
     plt.pause(5)
     plt.close()
 
-def load_2drsf_data(filename):
-    f  = sf.Input(filename)
-    nz = f.int("n1")
-    nx = f.int("n2")
-    dz = f.float("d1")
-    dx = f.float("d2")
-    oz = f.float("o1")
-    ox = f.float("o2")
 
-    # note in reading rsf to numpy the diload_rsf_datamension are reverse 
-    data = np.zeros((nx,nz),dtype=np.float32)
-    f.read(data)
-    print('Shape of loaded data: {}'.format(np.shape(data)))
-    parm = {'nz':nz, 'nx':nx, 
-            'dz':dz, 'dx':dx, 
-            'oz':oz, 'ox':ox
-            }
-    return data.T,parm
 
 def plot_models1D(inp,label,num_models,i,j):
     n=i*j
@@ -103,6 +85,9 @@ def plot_prediction(X,Y,pred,init,i,j):
         #plt.title('Validation')
     plt.show()
   
+
+
+
 def plot_history(trainingloss,testingloss,netname):
 
     #trainingloss = np.array(trainingloss)
@@ -146,35 +131,6 @@ def plot_r2(trainingloss,testingloss,netname):
     name='./output/figure/R2_'+netname+'.png'
     plt.savefig(name, bbox_inches='tight')
     
-# def scale_data(data=None):
-
-#     scaler= StandardScaler().fit(data)
-#     #scaler =  MinMaxScaler()
-#     # scaler = MaxAbsScaler()
-#     #scaler = RobustScaler()
-#     # scaler.fit(data)
-#     print(f'scaler mean {scaler.mean_} with the shape {scaler.mean_.shape}')
-#     print(f'scaler scale {scaler.scale_}')
-#     scaled_data = scaler.transform(data)
-#     return scaled_data.T,scaler
-
-
-def get_scaler(data=None):
-    ''' this function used to get scaler from training set'''
-    #scaler= StandardScaler().fit(data)
-    #scaler =  MinMaxScaler((-1,1)).fit(data)
-    scaler = MaxAbsScaler().fit(data)
-    # scaler = RobustScaler().fit(data)
-
-    return scaler
-
-
-def scale_data(data=None,scaler=None,mode='forward'):
-    if mode == 'forward':scaled_data = scaler.transform(data)
-    elif mode == 'inv': scaled_data = scaler.inverse_transform(data)
-    else: sys.exit("Error!: scaling mode is not 'forward' nor 'inv' " )
-    
-    return scaled_data
 
 
 
@@ -199,33 +155,18 @@ def plot_models1D2(inp,label,init,num_models,i,j):
     plt.close()
     
 
-
-
-def save_2drsf(model,par,path):
+def r2_score(target, prediction):
+    """Calculates the r2 score of the model
     
-    binarf=path+'@'
-    # save binary 
-    model.astype('float32').tofile(binarf)
-    cmd('''echo  ' # This is a Madagascar like header \n \n \t n1=%d \n \t n2=%d \n \t d1=%g \n 
-    \t d2=%g \n \t o1=%g \n \t o2=%g \n \t data_format=native_float \n \t in=%s' > %s  
-        '''%(par['nz'],par['nx'],par['dz'],par['dx'],par['oz'],par['ox'],binarf,path))
+    Args-
+        target- Actual values of the target variable
+        prediction- Predicted values, calculated using the model
+        
+    Returns- 
+        r2- r-squared score of the model
+    """
+    r2 = 1- torch.sum((target-prediction)**2) / torch.sum((target-target.float().mean())**2)
+    return r2
 
 
-def cmd(command):
-    """
-    Run command and pipe what you would see in terminal into the output cell
-    """
-    print(command)
-    process = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-    while True:
-        output = process.stderr.readline().decode('utf-8')
-        if output == '' and process.poll() is not None:
-            # this prints the stdout in the end
-            output2 = process.stdout.read().decode('utf-8')
-            print(output2.strip())
-            break
-        if output:
-            print(output.strip())
-    rc = process.poll()
-    return rc
 
