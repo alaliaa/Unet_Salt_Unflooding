@@ -2,7 +2,7 @@
 This is an implantation of the salt unflooding in the paper [Deep learning unflooding for robust subsalt waveform inversion
 ](https://arxiv.org/abs/2201.02947), and EAGE abstract [Automatic unflooding for salt base using U-net in full-waveform inversion framework](https://www.earthdoc.org/content/papers/10.3997/2214-4609.202112691).
 
-Paper's abstract 
+**Paper's abstract**
 
 *Full-waveform inversion (FWI), a popular technique that promises high-resolution models, has
 helped in improving the salt definition in inverted velocity models. The success of the inversion relies
@@ -24,6 +24,16 @@ top-to-bottom approach with FWI, save the BoS picking time, and empower FWI to c
 absence of low frequencies and long offsets in the data.*
 
 # Introduction 
+Assuming the velocity of the pre-salt sediments and the top of the salt body are well-defined, a 1D U-net network is trained to achieve two goals: 
+
+  1. Automatically detect the base of the salt 
+  2. Estimate the subsalt velocity to facilitate further FWI inversions
+
+Automatic detection of the salt body from seismic images is well dissiminated in the litruture. The common use of cross-entropy loss on seismic images in the detection do not allow for estimating the subsalt velocity. Thus, we propose a detection based on velocity obtained from Full-waveform inversion using MSE loss.   
+
+The workflow is shown in the below figure 
+
+![Alt text](./Figure/workflow2.png)
 
 
 
