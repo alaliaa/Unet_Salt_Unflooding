@@ -24,18 +24,14 @@ top-to-bottom approach with FWI, save the BoS picking time, and empower FWI to c
 absence of low frequencies and long offsets in the data.*
 
 # Introduction 
-Assuming the velocity of the pre-salt sediments and the top of the salt body are well-defined, a 1D U-net network is trained to achieve two goals: 
+Automatic detection of the salt body from seismic images is well dissiminated in the litruture. The common use of cross-entropy loss on seismic images in the detection do not allow for estimating the subsalt velocity. Thus, we propose a detection based on velocity obtained from Full-waveform inversion using MSE loss. Assuming the velocity of the pre-salt sediments and the top of the salt body are well-defined, a 1D U-net network is trained to achieve two goals: 
 
   1. Automatically detect the base of the salt 
   2. Estimate the subsalt velocity to facilitate further FWI inversions
-
-Automatic detection of the salt body from seismic images is well dissiminated in the litruture. The common use of cross-entropy loss on seismic images in the detection do not allow for estimating the subsalt velocity. Thus, we propose a detection based on velocity obtained from Full-waveform inversion using MSE loss.   
-
-The workflow is shown in the below figure 
-
+ 
+Applying a 1D inversion for a flooded velocity model forms the input for the network. 1D inversion is cheap compared to 2D, which allow generating a bundant training data. The target for the network is the true velocity profile. The workflow is summerized in the below figure.
 ![Alt text](./Figure/workflow2.png)
 
-
-
+# Experiments 
 
 
