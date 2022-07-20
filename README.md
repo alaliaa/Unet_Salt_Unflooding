@@ -32,18 +32,6 @@ absence of low frequencies and long offsets in the data.*
 
 
 **:open_file_folder:  Training:** 
-=======
-# Introduction 
-Automatic detection of the salt body from seismic images is well dissiminated in the litruture. The common use of cross-entropy loss on seismic images in the detection do not allow for estimating the subsalt velocity. Thus, we propose a detection based on velocity obtained from Full-waveform inversion using MSE loss. Assuming the velocity of the pre-salt sediments and the top of the salt body are well-defined, a 1D U-net network is trained to achieve two goals: 
-
-  1. Automatically detect the base of the salt 
-  2. Estimate the subsalt velocity to facilitate further FWI inversions
- 
-Applying a 1D inversion for a flooded velocity model forms the input for the network. 1D inversion is cheap compared to 2D, which allow generating a bundant training data. The target for the network is the true velocity profile. The workflow is summerized in the below figure.
-![Alt text](./Figure/workflow2.png)
-
-# Experiments 
->>>>>>> 833dd0645a17bb61fb5431135fbed155d614dc8b
 
 
 **:open_file_folder:  FWI:** 
