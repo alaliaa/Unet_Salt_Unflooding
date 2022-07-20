@@ -25,10 +25,9 @@ absence of low frequencies and long offsets in the data.*
 
 # Table of contents 
 
-**:open_file_folder:  generate models:**
-    
-    -It contains the  generations of 1D velocity models and their inversion 
-    -The functions are generated using Ibex cluster from KAUST 
+**:open_file_folder:  generate models:** 
+  - It contains the  generations of 1D velocity models and their inversion 
+  - The functions are generated using Ibex cluster from KAUST 
 
 
 **:open_file_folder:  Training:** 
