@@ -2,7 +2,7 @@
 This is an implantation of the salt unflooding in the paper [Deep learning unflooding for robust subsalt waveform inversion
 ](https://arxiv.org/abs/2201.02947), and EAGE abstract [Automatic unflooding for salt base using U-net in full-waveform inversion framework](https://www.earthdoc.org/content/papers/10.3997/2214-4609.202112691).
 
-Paper's abstract 
+**Paper's abstract**
 
 *Full-waveform inversion (FWI), a popular technique that promises high-resolution models, has
 helped in improving the salt definition in inverted velocity models. The success of the inversion relies
@@ -23,6 +23,7 @@ frequencies and long offsets are somewhat mitigated. In general, this work allow
 top-to-bottom approach with FWI, save the BoS picking time, and empower FWI to converge in the
 absence of low frequencies and long offsets in the data.*
 
+<<<<<<< HEAD
 # Table of contents 
 
 **:open_file_folder:  generate models:** 
@@ -31,6 +32,18 @@ absence of low frequencies and long offsets in the data.*
 
 
 **:open_file_folder:  Training:** 
+=======
+# Introduction 
+Automatic detection of the salt body from seismic images is well dissiminated in the litruture. The common use of cross-entropy loss on seismic images in the detection do not allow for estimating the subsalt velocity. Thus, we propose a detection based on velocity obtained from Full-waveform inversion using MSE loss. Assuming the velocity of the pre-salt sediments and the top of the salt body are well-defined, a 1D U-net network is trained to achieve two goals: 
+
+  1. Automatically detect the base of the salt 
+  2. Estimate the subsalt velocity to facilitate further FWI inversions
+ 
+Applying a 1D inversion for a flooded velocity model forms the input for the network. 1D inversion is cheap compared to 2D, which allow generating a bundant training data. The target for the network is the true velocity profile. The workflow is summerized in the below figure.
+![Alt text](./Figure/workflow2.png)
+
+# Experiments 
+>>>>>>> 833dd0645a17bb61fb5431135fbed155d614dc8b
 
 
 **:open_file_folder:  FWI:** 
