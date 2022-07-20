@@ -23,16 +23,15 @@ frequencies and long offsets are somewhat mitigated. In general, this work allow
 top-to-bottom approach with FWI, save the BoS picking time, and empower FWI to converge in the
 absence of low frequencies and long offsets in the data.*
 
-<<<<<<< HEAD
 # Table of contents 
 
 **:open_file_folder:  generate models:** 
+
     - It contains the  generations of 1D velocity models and their inversion 
     - The functions are generated using Ibex cluster from KAUST 
 
 
 **:open_file_folder:  Training:** 
-
 
 **:open_file_folder:  FWI:** 
 
