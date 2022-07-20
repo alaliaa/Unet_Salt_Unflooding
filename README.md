@@ -31,7 +31,7 @@ absence of low frequencies and long offsets in the data.*
 
 
 **:open_file_folder:  Training:** 
-
-**:open_file_folder:  FWI:** 
-
+  - It contains a training and inference notebook 
+  
 # Data 
+I have not upload the data at this point (I might do it soon), pleas email me in case you need it. 
